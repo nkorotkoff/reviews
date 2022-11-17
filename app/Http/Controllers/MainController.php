@@ -14,7 +14,9 @@ class MainController extends Controller
 {
     public function show(Request $request)
     {
-        $citys = city::orderBy('name', 'asc')->get();
+        $citys =cache()->remember('citys',120,function (){
+            return city::orderBy('name', 'asc')->get();
+        }) ;
         return view('index', ['citys' => $citys]);
     }
 
@@ -29,8 +31,10 @@ class MainController extends Controller
 
     public function reviews()
     {
-
-        $reviews = review::inRandomOrder()->get();
+        $currentPage = request()->get('page',1);
+        $reviews =cache()->remember('all_reviews-'. $currentPage,120,function (){
+            return review::inRandomOrder()->paginate(6);
+        }) ;
         return view('reviews', ['reviews' => $reviews]);
     }
 
@@ -40,7 +44,10 @@ class MainController extends Controller
         $cityId = city::where('name', $name)->first();
         if ($cityId) {
             session()->put('city', $name);
-            $city = review::where('city_id', $cityId->id)->orWhere('city_id', null)->get();
+            $currentPage = request()->get('page',1);
+            $city =cache()->remember('named_city-' . $currentPage,120,function () use ($cityId){
+            return review::where('city_id', $cityId->id)->orWhere('city_id', null)->orderBy('created_at','desc')->paginate(6);
+            });
 
             return view('reviews', ['reviews' => $city, 'cityId' => $cityId]);
         } else {
@@ -67,12 +74,12 @@ class MainController extends Controller
             [
                 'title' => 'required',
                 'text' => 'required|max:255',
-                'city' => ['nullable', 'string'],//new CityExist
+                'city' => ['nullable', 'string',new CityExist],
                 'rating' => 'required|numeric',
                 'file' => 'image|mimes:jpg,png,jpeg,gif,svg|max:2048|dimensions:min_width=100,min_height=100,max_width=1000,max_height=1000'
             ]
         );
-
+        cache()->flush();
         $validation['author_id'] = Auth::user()->id;
         if ($request->has('city') && !is_null($request->city)) {
             if (!city::where('name', $validation['city'])->first()) {
@@ -99,7 +106,10 @@ class MainController extends Controller
 
     public function edit($id)
     {
-        $review = review::find($id);
+
+       $review = review::find($id);
+
+        $this->authorize('update', $review);
         if($review->city_id){
             $city = city::find($review->city_id);
         }else{
@@ -115,23 +125,21 @@ class MainController extends Controller
             [
                 'title' => 'required',
                 'text' => 'required|max:255',
-                'city' => ['nullable', 'string'],//new CityExist
+                'city' => ['nullable', 'string',new CityExist],
                 'rating' => 'required|numeric',
                 'file' => 'image|mimes:jpg,png,jpeg,gif,svg|max:2048|dimensions:min_width=100,min_height=100,max_width=1000,max_height=1000'
             ]
         );
-
+            cache()->flush();
         $review = review::find($id);
+        $this->authorize('update', $review);
         if ($request->has('file') && !is_null($review->img)) {
             Storage::delete($review->img);
             $validation['img'] = $request->file('file')->store('public');
         }elseif($request->has('file')){
             $validation['img'] = $request->file('file')->store('public');
         }
-//        if(is_null($request->input('file')) && !is_null($review->img)){
-//            Storage::delete($review->img);
-//            $validation['img'] = null;
-//        }
+
 
         if ($request->input('city') && city::where('name', $validation['city'])->first()) {
             $city = city::where('name', $validation['city'])->first();
@@ -149,7 +157,10 @@ class MainController extends Controller
        return back()->with('success','Отзыв успешно изменен');
     }
     public function destroy($id){
+        $review = review::find($id);
+        $this->authorize('update', $review);
             review::destroy($id);
+        cache()->flush();
             return back()->with('success','Отзыв успешно удален');
     }
 

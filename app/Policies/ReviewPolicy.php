@@ -21,8 +21,9 @@ class ReviewPolicy
     }
     public function update(User $user, review $review)
     {
+
         return $user->id === $review->author_id
             ? Response::allow()
-            : Response::deny('You do not own this post.');
+            : Response::deny('You do not own this review.');
     }
 }

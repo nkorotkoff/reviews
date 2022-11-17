@@ -44,8 +44,8 @@
 
             @if(\Illuminate\Support\Facades\Auth::user() && $review->author_id === Auth::user()->id)
             <div class="d-flex">
-                <a class="btn btn-primary mx-2" href="{{route('edit_review',$review->id)}}">Edit</a>
-                <form method="POST" action="{{route('delete',$review->id)}}">
+                <a class="btn btn-primary mx-2" href="{{route('edit_review',$review)}}">Edit</a>
+                <form method="POST" action="{{route('delete',$review)}}">
                 @csrf
                 @method('DELETE')
                 <button type="submit" class="btn btn-danger">Delete</button>
@@ -55,6 +55,7 @@
         </div>
     </div>
     @endforeach
+    {{$reviews->links()}}
 </div>
 <script src="/star-rating.js"></script>
 <script>

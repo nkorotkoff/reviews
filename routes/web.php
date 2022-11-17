@@ -38,10 +38,10 @@ Route::get('/reload-captcha',[\App\Http\Controllers\userController::class,'reloa
 
 Route::post('/savesession',[\App\Http\Controllers\MainController::class,'session'])->name('sessions');
 
-Route::middleware(['verify','auth','can:update,review'])->group(function(){
-    Route::get('/edit_review/{id}',[\App\Http\Controllers\MainController::class,'edit'])->name('edit_review');
-    Route::post('/edit_review/{id}',[\App\Http\Controllers\MainController::class,'update'])->name('update');
-    Route::delete('/delete/{id}',[\App\Http\Controllers\MainController::class,'destroy'])->name('delete');
+Route::middleware(['verified','auth'])->group(function(){
+    Route::get('/edit_review/{review}',[\App\Http\Controllers\MainController::class,'edit'])->name('edit_review');
+    Route::post('/edit_review/{review}',[\App\Http\Controllers\MainController::class,'update'])->name('update');
+    Route::delete('/delete/{review}',[\App\Http\Controllers\MainController::class,'destroy'])->name('delete');
 });
 
 

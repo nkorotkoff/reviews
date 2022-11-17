@@ -13,7 +13,10 @@ class profileController extends Controller
     }
     public function profile_reviews($id){
         $user = User::find($id);
-        $reviews = $user->review;
+
+
+        $reviews = $user->review()->orderBy('created_at','desc')->paginate(6);
+
         return view('reviews',['reviews'=>$reviews,'user'=>$user]);
     }
 }
