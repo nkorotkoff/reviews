@@ -45,7 +45,7 @@ class MainController extends Controller
         if ($cityId) {
             session()->put('city', $name);
             $currentPage = request()->get('page',1);
-            $city =cache()->remember('named_city-' . $currentPage,120,function () use ($cityId){
+            $city =cache()->remember('named_city-' . $name . $currentPage,120,function () use ($cityId){
             return review::where('city_id', $cityId->id)->orWhere('city_id', null)->orderBy('created_at','desc')->paginate(6);
             });
 

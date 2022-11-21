@@ -22,7 +22,7 @@ class CityExist implements InvokableRule
             "X-Secret" => '3e0edf0f0b358816fef8c66e0f1f9bbe85706bfa',
         ])->post('https://cleaner.dadata.ru/api/v1/clean/address',[$value]);
        $city = $response->collect($key = null)->pluck('result');
-       if(substr($city->implode('-'),3)!==ucfirst($value)){
+       if(!str_contains($city->implode('-'),ucfirst($value))){
            $fail('Не правильно введен город');
        }
     }
